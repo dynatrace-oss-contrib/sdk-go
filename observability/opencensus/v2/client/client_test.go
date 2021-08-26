@@ -158,8 +158,6 @@ func TestTracedClientReceiveError(t *testing.T) {
 
 		obsSpan := te.spans[0]
 
-		assert.Equal(t, false, protocol.IsACK(result))
-
 		// The span created by the observability service should have the error that came from the receiver fn
 		assert.Equal(t, int32(trace.StatusCodeUnknown), obsSpan.Status.Code)
 		assert.Equal(t, "some error happened within the receiver", obsSpan.Status.Message)
