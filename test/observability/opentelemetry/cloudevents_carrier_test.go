@@ -37,7 +37,7 @@ func TestExtractContextWithTraceContext(t *testing.T) {
 		event  cloudevents.Event
 		header http.Header
 	}
-	tracer := configureOtelTestSdk()
+	_, tracer := configureOtelTestSdk()
 	tests := []testcase{
 		{
 			name:  "context with recording span",
@@ -83,7 +83,7 @@ func TestExtractContextWithoutTraceContext(t *testing.T) {
 		event  cloudevents.Event
 		header http.Header
 	}
-	_ = configureOtelTestSdk()
+	_, _ = configureOtelTestSdk()
 	tests := []testcase{
 		{
 			name:  "context without tracecontext",
@@ -201,9 +201,9 @@ func createCloudEventWithInvalidTraceParent() cloudevents.Event {
 	return event
 }
 
-func configureOtelTestSdk() trace.Tracer {
+func configureOtelTestSdk() (*tracetest.SpanRecorder, trace.Tracer) {
 	sr := tracetest.NewSpanRecorder()
 	provider := sdkTrace.NewTracerProvider(sdkTrace.WithSpanProcessor(sr), sdkTrace.WithSampler(sdkTrace.AlwaysSample()))
 	otel.SetTracerProvider(provider)
-	return provider.Tracer("test-tracer")
+	return sr, provider.Tracer("test-tracer")
 }

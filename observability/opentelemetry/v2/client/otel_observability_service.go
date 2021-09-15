@@ -74,7 +74,7 @@ func (os OTelObservabilityService) RecordCallingInvoker(ctx context.Context, eve
 	ctx, span := os.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindConsumer),
-		trace.WithAttributes(os.getSpanAttributes(event, "RecordCallingInvoker")...))
+		trace.WithAttributes(GetDefaultSpanAttributes(event, "RecordCallingInvoker")...))
 
 	if span.IsRecording() && os.spanAttributesGetter != nil {
 		span.SetAttributes(os.spanAttributesGetter(event)...)
@@ -94,7 +94,7 @@ func (os OTelObservabilityService) RecordSendingEvent(ctx context.Context, event
 	ctx, span := os.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindProducer),
-		trace.WithAttributes(os.getSpanAttributes(&event, "RecordSendingEvent")...))
+		trace.WithAttributes(GetDefaultSpanAttributes(&event, "RecordSendingEvent")...))
 
 	if span.IsRecording() && os.spanAttributesGetter != nil {
 		span.SetAttributes(os.spanAttributesGetter(&event)...)
@@ -114,7 +114,7 @@ func (os OTelObservabilityService) RecordRequestEvent(ctx context.Context, event
 	ctx, span := os.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindProducer),
-		trace.WithAttributes(os.getSpanAttributes(&event, "RecordRequestEvent")...))
+		trace.WithAttributes(GetDefaultSpanAttributes(&event, "RecordRequestEvent")...))
 
 	if span.IsRecording() && os.spanAttributesGetter != nil {
 		span.SetAttributes(os.spanAttributesGetter(&event)...)
@@ -124,6 +124,23 @@ func (os OTelObservabilityService) RecordRequestEvent(ctx context.Context, event
 		recordSpanError(span, errOrResult)
 		span.End()
 	}
+}
+
+func GetDefaultSpanAttributes(e *cloudevents.Event, method string) []attribute.KeyValue {
+	attr := []attribute.KeyValue{
+		attribute.String(string(semconv.CodeFunctionKey), method),
+		attribute.String(observability.SpecversionAttr, e.SpecVersion()),
+		attribute.String(observability.IdAttr, e.ID()),
+		attribute.String(observability.TypeAttr, e.Type()),
+		attribute.String(observability.SourceAttr, e.Source()),
+	}
+	if sub := e.Subject(); sub != "" {
+		attr = append(attr, attribute.String(observability.SubjectAttr, sub))
+	}
+	if dct := e.DataContentType(); dct != "" {
+		attr = append(attr, attribute.String(observability.DatacontenttypeAttr, dct))
+	}
+	return attr
 }
 
 // Extracts the traceparent from the msg and enriches the context to enable propagation
@@ -159,23 +176,6 @@ func recordSpanError(span trace.Span, errOrResult error) {
 	} else {
 		span.RecordError(errOrResult)
 	}
-}
-
-func (os OTelObservabilityService) getSpanAttributes(e *cloudevents.Event, method string) []attribute.KeyValue {
-	attr := []attribute.KeyValue{
-		attribute.String(string(semconv.CodeFunctionKey), method),
-		attribute.String(observability.SpecversionAttr, e.SpecVersion()),
-		attribute.String(observability.IdAttr, e.ID()),
-		attribute.String(observability.TypeAttr, e.Type()),
-		attribute.String(observability.SourceAttr, e.Source()),
-	}
-	if sub := e.Subject(); sub != "" {
-		attr = append(attr, attribute.String(observability.SubjectAttr, sub))
-	}
-	if dct := e.DataContentType(); dct != "" {
-		attr = append(attr, attribute.String(observability.DatacontenttypeAttr, dct))
-	}
-	return attr
 }
 
 // getSpanName Returns the name of the span.

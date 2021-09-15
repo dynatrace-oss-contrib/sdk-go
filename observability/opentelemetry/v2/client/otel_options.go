@@ -16,13 +16,17 @@ type OTelObservabilityServiceOption func(*OTelObservabilityService)
 
 func WithSpanAttributesGetter(attrGetter func(*cloudevents.Event) []attribute.KeyValue) OTelObservabilityServiceOption {
 	return func(os *OTelObservabilityService) {
-		os.spanAttributesGetter = attrGetter
+		if attrGetter != nil {
+			os.spanAttributesGetter = attrGetter
+		}
 	}
 }
 
 func WithSpanNameFormatter(nameFormatter func(*cloudevents.Event) string) OTelObservabilityServiceOption {
 	return func(os *OTelObservabilityService) {
-		os.spanNameFormatter = nameFormatter
+		if nameFormatter != nil {
+			os.spanNameFormatter = nameFormatter
+		}
 	}
 }
 
