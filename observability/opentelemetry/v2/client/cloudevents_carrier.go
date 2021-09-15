@@ -18,13 +18,13 @@ type CloudEventCarrier struct {
 	Extension *extensions.DistributedTracingExtension
 }
 
-// NewCloudEventCarrier creates a new CloudEventCarrier with an empty distributed tracing extension
+// NewCloudEventCarrier creates a new CloudEventCarrier with an empty distributed tracing extension.
 func NewCloudEventCarrier() CloudEventCarrier {
 	return CloudEventCarrier{Extension: &extensions.DistributedTracingExtension{}}
 }
 
 // NewCloudEventCarrierWithEvent creates a new CloudEventCarrier with a distributed tracing extension
-// populated with the trace data from the event
+// populated with the trace data from the event.
 func NewCloudEventCarrierWithEvent(event cloudevents.Event) CloudEventCarrier {
 	var te, ok = extensions.GetDistributedTracingExtension(event)
 	if !ok {
@@ -63,7 +63,7 @@ func (cec CloudEventCarrier) Keys() []string {
 // InjectDistributedTracingExtension injects the tracecontext from the context into the event as a DistributedTracingExtension
 //
 // If a DistributedTracingExtension is present in the provided event, its current value is replaced with the
-// tracecontext obtained from the context
+// tracecontext obtained from the context.
 func InjectDistributedTracingExtension(ctx context.Context, event cloudevents.Event) {
 	tc := NewCloudEventTraceContext()
 	carrier := NewCloudEventCarrier()
@@ -71,16 +71,15 @@ func InjectDistributedTracingExtension(ctx context.Context, event cloudevents.Ev
 	carrier.Extension.AddTracingAttributes(&event)
 }
 
-// ExtractDistributedTracingExtension reads tracecontext from the cloudevent DistributedTracingExtension into a returned Context.
+// ExtractDistributedTracingExtension extracts the tracecontext from the cloud event into the context.
 //
-// The returned Context will be a copy of ctx and contain the extracted
-// tracecontext as the remote SpanContext. If the extracted tracecontext is
-// invalid, the passed ctx will be returned directly instead.
+// If the context has a recording span, then the same context is returned. If not, then the extraction
+// from the cloud event happens. The auto-instrumentation libraries take care of creating the context
+// with the proper/most recent tracecontext, often started by itself. In this case it's more correct
+// to take the tracecontext from the context instead of taking it from the event.
 func ExtractDistributedTracingExtension(ctx context.Context, event cloudevents.Event) context.Context {
 	tc := NewCloudEventTraceContext()
 	carrier := NewCloudEventCarrierWithEvent(event)
 
-	ctx = tc.Extract(ctx, carrier)
-
-	return ctx
+	return tc.Extract(ctx, carrier)
 }
