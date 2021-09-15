@@ -7,7 +7,7 @@ import (
 )
 
 // NewClientHTTP produces a new client instrumented with OpenTelemetry.
-func NewClientHTTP(obsOpt OTelObservabilityServiceOptions, topt []cehttp.Option, copt []client.Option) (client.Client, error) {
+func NewClientHTTP(topt []cehttp.Option, copt []client.Option, obsOpts ...OTelObservabilityServiceOption) (client.Client, error) {
 	t, err := obshttp.NewObservedHTTP(topt...)
 	if err != nil {
 		return nil, err
@@ -17,7 +17,7 @@ func NewClientHTTP(obsOpt OTelObservabilityServiceOptions, topt []cehttp.Option,
 		copt,
 		client.WithTimeNow(),
 		client.WithUUIDs(),
-		client.WithObservabilityService(NewOTelObservabilityService(obsOpt)),
+		client.WithObservabilityService(NewOTelObservabilityService(obsOpts...)),
 	)
 
 	c, err := client.New(t, copt...)

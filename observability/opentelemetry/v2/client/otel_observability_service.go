@@ -22,39 +22,31 @@ import (
 	cehttp "github.com/cloudevents/sdk-go/v2/protocol/http"
 )
 
-const (
-	// TODO: Should this be the name of this module or the whole package?
-	instrumentationName = "github.com/cloudevents/sdk-go/observability/opentelemetry/v2"
-)
-
-type OTelObservabilityServiceOptions struct {
-	SpanAttributesGetter func(*cloudevents.Event) []attribute.KeyValue
-	SpanNameFormatter    func(*cloudevents.Event) string
-}
-
-var defaultObsServiceOptions = &OTelObservabilityServiceOptions{
-	SpanNameFormatter: func(e *cloudevents.Event) string {
-		return fmt.Sprintf("%s.%s", observability.ClientSpanName, e.Context.GetType())
-	},
-}
-
 // OTelObservabilityService implements the ObservabilityService interface from cloudevents
 type OTelObservabilityService struct {
-	tracer  trace.Tracer
-	options OTelObservabilityServiceOptions
+	tracer               trace.Tracer
+	spanAttributesGetter func(*cloudevents.Event) []attribute.KeyValue
+	spanNameFormatter    func(*cloudevents.Event) string
 }
 
 // NewOTelObservabilityService returns a OpenTelemetry enabled observability service
-func NewOTelObservabilityService(obsOpt OTelObservabilityServiceOptions) *OTelObservabilityService {
+func NewOTelObservabilityService(opts ...OTelObservabilityServiceOption) *OTelObservabilityService {
 	tracerProvider := otel.GetTracerProvider()
 
-	return &OTelObservabilityService{
-		options: obsOpt,
+	os := &OTelObservabilityService{
 		tracer: tracerProvider.Tracer(
 			instrumentationName,
 			trace.WithInstrumentationVersion("1.0.0"), // TODO: Can we have the package version here?
 		),
+		spanNameFormatter: defaultSpanNameFormatter,
 	}
+
+	// apply passed options
+	for _, opt := range opts {
+		opt(os)
+	}
+
+	return os
 }
 
 // InboundContextDecorators returns a decorator function that allows enriching the context with the incoming parent trace.
@@ -78,14 +70,14 @@ func (os OTelObservabilityService) RecordReceivedMalformedEvent(ctx context.Cont
 // RecordCallingInvoker starts a new span before calling the invoker upon a received event.
 // In case the operation fails, the error is recorded and the span is marked as failed.
 func (os OTelObservabilityService) RecordCallingInvoker(ctx context.Context, event *cloudevents.Event) (context.Context, func(errOrResult error)) {
-	spanName := os.getSpanName(event, " receive")
+	spanName := os.getSpanName(event, "receive")
 	ctx, span := os.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindConsumer),
 		trace.WithAttributes(os.getSpanAttributes(event, "RecordCallingInvoker")...))
 
-	if span.IsRecording() && os.options.SpanAttributesGetter != nil {
-		span.SetAttributes(os.options.SpanAttributesGetter(event)...)
+	if span.IsRecording() && os.spanAttributesGetter != nil {
+		span.SetAttributes(os.spanAttributesGetter(event)...)
 	}
 
 	return ctx, func(errOrResult error) {
@@ -97,15 +89,15 @@ func (os OTelObservabilityService) RecordCallingInvoker(ctx context.Context, eve
 // RecordSendingEvent starts a new span before sending the event.
 // In case the operation fails, the error is recorded and the span is marked as failed.
 func (os OTelObservabilityService) RecordSendingEvent(ctx context.Context, event cloudevents.Event) (context.Context, func(errOrResult error)) {
-	spanName := os.getSpanName(&event, " send")
+	spanName := os.getSpanName(&event, "send")
 
 	ctx, span := os.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindProducer),
 		trace.WithAttributes(os.getSpanAttributes(&event, "RecordSendingEvent")...))
 
-	if span.IsRecording() && os.options.SpanAttributesGetter != nil {
-		span.SetAttributes(os.options.SpanAttributesGetter(&event)...)
+	if span.IsRecording() && os.spanAttributesGetter != nil {
+		span.SetAttributes(os.spanAttributesGetter(&event)...)
 	}
 
 	return ctx, func(errOrResult error) {
@@ -117,15 +109,15 @@ func (os OTelObservabilityService) RecordSendingEvent(ctx context.Context, event
 // RecordRequestEvent starts a new span before transmitting the given request.
 // In case the operation fails, the error is recorded and the span is marked as failed.
 func (os OTelObservabilityService) RecordRequestEvent(ctx context.Context, event cloudevents.Event) (context.Context, func(errOrResult error, event *cloudevents.Event)) {
-	spanName := os.getSpanName(&event, " process")
+	spanName := os.getSpanName(&event, "send")
 
 	ctx, span := os.tracer.Start(
 		ctx, spanName,
-		trace.WithSpanKind(trace.SpanKindConsumer),
+		trace.WithSpanKind(trace.SpanKindProducer),
 		trace.WithAttributes(os.getSpanAttributes(&event, "RecordRequestEvent")...))
 
-	if span.IsRecording() && os.options.SpanAttributesGetter != nil {
-		span.SetAttributes(os.options.SpanAttributesGetter(&event)...)
+	if span.IsRecording() && os.spanAttributesGetter != nil {
+		span.SetAttributes(os.spanAttributesGetter(&event)...)
 	}
 
 	return ctx, func(errOrResult error, event *cloudevents.Event) {
@@ -188,23 +180,17 @@ func (os OTelObservabilityService) getSpanAttributes(e *cloudevents.Event, metho
 
 // getSpanName Returns the name of the span.
 //
-// When no SpanNameFormatter is present in OTelObservabilityServiceOptions,
-// the default name will be cloudevents.client.<eventtype> prefix e.g. cloudevents.client.get.customers send.
+// When no spanNameFormatter is present in OTelObservabilityService,
+// the default name will be "cloudevents.client.<eventtype> prefix" e.g. cloudevents.client.get.customers send.
 //
 // The prefix is always added at the end of the span name. This follows the semantic conventions for
 // messasing systems as defined in https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#operation-names
 func (os OTelObservabilityService) getSpanName(e *cloudevents.Event, suffix string) string {
-	var name string
-
-	if os.options.SpanNameFormatter == nil {
-		name = defaultObsServiceOptions.SpanNameFormatter(e)
-	} else {
-		name = os.options.SpanNameFormatter(e)
-	}
+	name := os.spanNameFormatter(e)
 
 	// make sure the span name ends with the suffix from the semantic conventions (receive, send, process)
 	if !strings.HasSuffix(name, suffix) {
-		return name + suffix
+		return name + " " + suffix
 	}
 
 	return name
