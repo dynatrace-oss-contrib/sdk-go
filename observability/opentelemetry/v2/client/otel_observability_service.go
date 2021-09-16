@@ -7,7 +7,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"go.opentelemetry.io/otel"
@@ -57,13 +56,13 @@ func (os OTelObservabilityService) InboundContextDecorators() []func(context.Con
 
 // RecordReceivedMalformedEvent records the error from a malformed event in the span.
 func (os OTelObservabilityService) RecordReceivedMalformedEvent(ctx context.Context, err error) {
-	spanName := fmt.Sprintf("%s receive", observability.ClientSpanName)
+	spanName := observability.ClientSpanName + ".malformed receive"
 	_, span := os.tracer.Start(
-		ctx,
-		spanName,
+		ctx, spanName,
+		trace.WithSpanKind(trace.SpanKindConsumer),
 		trace.WithAttributes(attribute.String(string(semconv.CodeFunctionKey), "RecordReceivedMalformedEvent")))
 
-	span.RecordError(err)
+	recordSpanError(span, err)
 	span.End()
 }
 
