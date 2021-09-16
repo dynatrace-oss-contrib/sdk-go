@@ -32,8 +32,8 @@ func TestRecordSendingEvent(t *testing.T) {
 		expectedAttrs    []attribute.KeyValue
 		expectedResult   protocol.Result
 		expectedSpanKind trace.SpanKind
-		nameFormatter    func(*cloudevents.Event) string
-		attributesGetter func(*cloudevents.Event) []attribute.KeyValue
+		nameFormatter    func(cloudevents.Event) string
+		attributesGetter func(cloudevents.Event) []attribute.KeyValue
 	}{
 
 		{
@@ -50,7 +50,7 @@ func TestRecordSendingEvent(t *testing.T) {
 			expectedStatus:   codes.Unset,
 			expectedAttrs:    otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordSendingEvent"),
 			expectedSpanKind: trace.SpanKindProducer,
-			nameFormatter: func(e *cloudevents.Event) string {
+			nameFormatter: func(e cloudevents.Event) string {
 				return "test." + e.Context.GetType()
 			},
 		},
@@ -60,10 +60,10 @@ func TestRecordSendingEvent(t *testing.T) {
 			expectedStatus:   codes.Unset,
 			expectedAttrs:    append(otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordSendingEvent"), attribute.String("my-attr", "some-value")),
 			expectedSpanKind: trace.SpanKindProducer,
-			nameFormatter: func(e *cloudevents.Event) string {
+			nameFormatter: func(e cloudevents.Event) string {
 				return "test." + e.Context.GetType()
 			},
-			attributesGetter: func(*cloudevents.Event) []attribute.KeyValue {
+			attributesGetter: func(cloudevents.Event) []attribute.KeyValue {
 				return []attribute.KeyValue{
 					attribute.String("my-attr", "some-value"),
 				}
@@ -134,8 +134,8 @@ func TestRecordRequestEvent(t *testing.T) {
 		expectedAttrs    []attribute.KeyValue
 		expectedResult   protocol.Result
 		expectedSpanKind trace.SpanKind
-		nameFormatter    func(*cloudevents.Event) string
-		attributesGetter func(*cloudevents.Event) []attribute.KeyValue
+		nameFormatter    func(cloudevents.Event) string
+		attributesGetter func(cloudevents.Event) []attribute.KeyValue
 	}{
 
 		{
@@ -152,7 +152,7 @@ func TestRecordRequestEvent(t *testing.T) {
 			expectedStatus:   codes.Unset,
 			expectedAttrs:    otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordRequestEvent"),
 			expectedSpanKind: trace.SpanKindProducer,
-			nameFormatter: func(e *cloudevents.Event) string {
+			nameFormatter: func(e cloudevents.Event) string {
 				return "test." + e.Context.GetType()
 			},
 		},
@@ -162,10 +162,10 @@ func TestRecordRequestEvent(t *testing.T) {
 			expectedStatus:   codes.Unset,
 			expectedAttrs:    append(otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordRequestEvent"), attribute.String("my-attr", "some-value")),
 			expectedSpanKind: trace.SpanKindProducer,
-			nameFormatter: func(e *cloudevents.Event) string {
+			nameFormatter: func(e cloudevents.Event) string {
 				return "test." + e.Context.GetType()
 			},
-			attributesGetter: func(*cloudevents.Event) []attribute.KeyValue {
+			attributesGetter: func(cloudevents.Event) []attribute.KeyValue {
 				return []attribute.KeyValue{
 					attribute.String("my-attr", "some-value"),
 				}
@@ -236,8 +236,8 @@ func TestRecordCallingInvoker(t *testing.T) {
 		expectedAttrs    []attribute.KeyValue
 		expectedResult   protocol.Result
 		expectedSpanKind trace.SpanKind
-		nameFormatter    func(*cloudevents.Event) string
-		attributesGetter func(*cloudevents.Event) []attribute.KeyValue
+		nameFormatter    func(cloudevents.Event) string
+		attributesGetter func(cloudevents.Event) []attribute.KeyValue
 	}{
 
 		{
@@ -254,7 +254,7 @@ func TestRecordCallingInvoker(t *testing.T) {
 			expectedStatus:   codes.Unset,
 			expectedAttrs:    otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordCallingInvoker"),
 			expectedSpanKind: trace.SpanKindConsumer,
-			nameFormatter: func(e *cloudevents.Event) string {
+			nameFormatter: func(e cloudevents.Event) string {
 				return "test." + e.Context.GetType()
 			},
 		},
@@ -264,10 +264,10 @@ func TestRecordCallingInvoker(t *testing.T) {
 			expectedStatus:   codes.Unset,
 			expectedAttrs:    append(otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordCallingInvoker"), attribute.String("my-attr", "some-value")),
 			expectedSpanKind: trace.SpanKindConsumer,
-			nameFormatter: func(e *cloudevents.Event) string {
+			nameFormatter: func(e cloudevents.Event) string {
 				return "test." + e.Context.GetType()
 			},
-			attributesGetter: func(*cloudevents.Event) []attribute.KeyValue {
+			attributesGetter: func(cloudevents.Event) []attribute.KeyValue {
 				return []attribute.KeyValue{
 					attribute.String("my-attr", "some-value"),
 				}

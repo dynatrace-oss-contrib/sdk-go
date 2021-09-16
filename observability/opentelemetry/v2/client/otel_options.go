@@ -14,7 +14,7 @@ const (
 
 type OTelObservabilityServiceOption func(*OTelObservabilityService)
 
-func WithSpanAttributesGetter(attrGetter func(*cloudevents.Event) []attribute.KeyValue) OTelObservabilityServiceOption {
+func WithSpanAttributesGetter(attrGetter func(cloudevents.Event) []attribute.KeyValue) OTelObservabilityServiceOption {
 	return func(os *OTelObservabilityService) {
 		if attrGetter != nil {
 			os.spanAttributesGetter = attrGetter
@@ -22,7 +22,7 @@ func WithSpanAttributesGetter(attrGetter func(*cloudevents.Event) []attribute.Ke
 	}
 }
 
-func WithSpanNameFormatter(nameFormatter func(*cloudevents.Event) string) OTelObservabilityServiceOption {
+func WithSpanNameFormatter(nameFormatter func(cloudevents.Event) string) OTelObservabilityServiceOption {
 	return func(os *OTelObservabilityService) {
 		if nameFormatter != nil {
 			os.spanNameFormatter = nameFormatter
@@ -30,6 +30,6 @@ func WithSpanNameFormatter(nameFormatter func(*cloudevents.Event) string) OTelOb
 	}
 }
 
-var defaultSpanNameFormatter func(*cloudevents.Event) string = func(e *cloudevents.Event) string {
+var defaultSpanNameFormatter func(cloudevents.Event) string = func(e cloudevents.Event) string {
 	return observability.ClientSpanName + "." + e.Context.GetType()
 }

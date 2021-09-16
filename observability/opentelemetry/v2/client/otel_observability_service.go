@@ -24,8 +24,8 @@ import (
 // OTelObservabilityService implements the ObservabilityService interface from cloudevents
 type OTelObservabilityService struct {
 	tracer               trace.Tracer
-	spanAttributesGetter func(*cloudevents.Event) []attribute.KeyValue
-	spanNameFormatter    func(*cloudevents.Event) string
+	spanAttributesGetter func(cloudevents.Event) []attribute.KeyValue
+	spanNameFormatter    func(cloudevents.Event) string
 }
 
 // NewOTelObservabilityService returns a OpenTelemetry enabled observability service
@@ -76,7 +76,7 @@ func (os OTelObservabilityService) RecordCallingInvoker(ctx context.Context, eve
 		trace.WithAttributes(GetDefaultSpanAttributes(event, "RecordCallingInvoker")...))
 
 	if span.IsRecording() && os.spanAttributesGetter != nil {
-		span.SetAttributes(os.spanAttributesGetter(event)...)
+		span.SetAttributes(os.spanAttributesGetter(*event)...)
 	}
 
 	return ctx, func(errOrResult error) {
@@ -96,7 +96,7 @@ func (os OTelObservabilityService) RecordSendingEvent(ctx context.Context, event
 		trace.WithAttributes(GetDefaultSpanAttributes(&event, "RecordSendingEvent")...))
 
 	if span.IsRecording() && os.spanAttributesGetter != nil {
-		span.SetAttributes(os.spanAttributesGetter(&event)...)
+		span.SetAttributes(os.spanAttributesGetter(event)...)
 	}
 
 	return ctx, func(errOrResult error) {
@@ -116,7 +116,7 @@ func (os OTelObservabilityService) RecordRequestEvent(ctx context.Context, event
 		trace.WithAttributes(GetDefaultSpanAttributes(&event, "RecordRequestEvent")...))
 
 	if span.IsRecording() && os.spanAttributesGetter != nil {
-		span.SetAttributes(os.spanAttributesGetter(&event)...)
+		span.SetAttributes(os.spanAttributesGetter(event)...)
 	}
 
 	return ctx, func(errOrResult error, event *cloudevents.Event) {
@@ -186,7 +186,7 @@ func recordSpanError(span trace.Span, errOrResult error) {
 // The prefix is always added at the end of the span name. This follows the semantic conventions for
 // messasing systems as defined in https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#operation-names
 func (os OTelObservabilityService) getSpanName(e *cloudevents.Event, suffix string) string {
-	name := os.spanNameFormatter(e)
+	name := os.spanNameFormatter(*e)
 
 	// make sure the span name ends with the suffix from the semantic conventions (receive, send, process)
 	if !strings.HasSuffix(name, suffix) {
