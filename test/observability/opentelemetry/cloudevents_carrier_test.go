@@ -205,5 +205,6 @@ func configureOtelTestSdk() (*tracetest.SpanRecorder, trace.Tracer) {
 	sr := tracetest.NewSpanRecorder()
 	provider := sdkTrace.NewTracerProvider(sdkTrace.WithSpanProcessor(sr), sdkTrace.WithSampler(sdkTrace.AlwaysSample()))
 	otel.SetTracerProvider(provider)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 	return sr, provider.Tracer("test-tracer")
 }

@@ -170,7 +170,8 @@ func recordSpanError(span trace.Span, errOrResult error) {
 	if cloudevents.ResultAs(errOrResult, &httpResult) {
 		span.RecordError(httpResult)
 		if httpResult.StatusCode > 0 {
-			span.SetStatus(semconv.SpanStatusFromHTTPStatusCode(httpResult.StatusCode))
+			code, _ := semconv.SpanStatusFromHTTPStatusCode(httpResult.StatusCode)
+			span.SetStatus(code, httpResult.Error())
 		}
 	} else {
 		span.RecordError(errOrResult)
