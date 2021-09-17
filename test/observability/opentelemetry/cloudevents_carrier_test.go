@@ -41,15 +41,17 @@ func TestExtractContextWithTraceContext(t *testing.T) {
 		name   string
 		event  cloudevents.Event
 		header http.Header
+		want   string
 	}
-	_, tracer := configureOtelTestSdk()
+
 	tests := []testcase{
 		{
-			name:  "context with recording span",
+			name:  "tracecontext in the context is overwritten by the one from the event",
 			event: createCloudEvent(distributedExt),
 			header: http.Header{
 				traceparent: []string{"00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-aaaaaaaaaaaaaaaa-00"},
 			},
+			want: "00-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-bbbbbbbbbbbbbbbb-00",
 		},
 		{
 			name:  "context with tracecontext and event with invalid tracecontext",
@@ -57,27 +59,25 @@ func TestExtractContextWithTraceContext(t *testing.T) {
 			header: http.Header{
 				traceparent: []string{"00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-aaaaaaaaaaaaaaaa-00"},
 			},
+			want: "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-aaaaaaaaaaaaaaaa-00",
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			incomingCtx := context.Background()
-
 			// Simulates a case of an auto-instrumented client where the context
-			// has the incoming parent span + the new span started by the auto-instrumented library (e.g Http)
-			incomingCtx = prop.Extract(incomingCtx, propagation.HeaderCarrier(tc.header))
-			incomingCtx, span := tracer.Start(incomingCtx, "http-autoinstrumentation")
-			defer span.End()
+			// has the incoming parent span
+			incomingCtx := prop.Extract(context.Background(), propagation.HeaderCarrier(tc.header))
 
 			// act
 			newCtx := otelObs.ExtractDistributedTracingExtension(incomingCtx, tc.event)
-			sc := trace.SpanContextFromContext(newCtx)
 
-			// Because the incomingCtx already had a traceContext, the new one should be the same
-			assert.Equal(t, trace.SpanContextFromContext(incomingCtx), sc)
-			assert.Equal(t, span.SpanContext().TraceID(), sc.TraceID())
-			assert.Equal(t, span.SpanContext().SpanID(), sc.SpanID())
+			prop := propagation.TraceContext{}
+			carrier := otelObs.NewCloudEventCarrier()
+			prop.Inject(newCtx, carrier)
+
+			// the newCtx contains the expected traceparent
+			assert.Equal(t, tc.want, carrier.Extension.TraceParent)
 		})
 	}
 }

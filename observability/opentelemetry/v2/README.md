@@ -145,17 +145,15 @@ func handleEvent(e cloudevents.Event) {
 
 Because we used the `context` that was re-created from the event, the call to `my-other-cloudevents-app` will be correlated with the initial span. If `my-other-cloudevents-app` is also instrumented and itself make more calls, these will also be part of the trace.
 
-Most use-cases are covered by using the `InjectDistributedTracingExtension` and `ExtractDistributedTracingExtension` helper functions. Under the hood, the functions use the `CloudEventCarrier` and `CloudEventTraceContext` types. They offer a "low-level" access to tracecontext information.
+Most use-cases are covered by using the `InjectDistributedTracingExtension` and `ExtractDistributedTracingExtension` helper functions.
 
-### CloudEventCarrier and CloudEventTraceContext
+### CloudEventCarrier
 
 The `CloudEventCarrier` is an implementation of the OpenTelemetry [TextMapCarrier](https://github.com/open-telemetry/opentelemetry-go/blob/v1.0.0-RC3/propagation/propagation.go#L23). Its purpose is to carry the `tracecontext`, that is used by propagators later. 
 
 `CloudEventCarrier` exposes the `DistributedTracingExtension` which is populated by the propagator. It works similarly as the [HeaderCarrier](https://github.com/open-telemetry/opentelemetry-go/blob/v1.0.0-RC3/propagation/propagation.go#L44) which allows getting/setting the `traceparent` header.
 
-The `CloudEventTraceContext` is a wrapper around the OpenTelemetry [TraceContext](https://github.com/open-telemetry/opentelemetry-go/blob/v1.0.0-RC3/propagation/trace_context.go) propagator.
-
-These types can be combined to get access to the "raw" `tracecontext` values (`traceparent` and `tracestate`). One use case is to inject the `tracecontext` from the `context` into the carrier, to gain access to the populated `DistributedTracingExtension`:
+It can be used to get access to the "raw" `tracecontext` values (`traceparent` and `tracestate`). One use case is to inject the `tracecontext` from the `context` into the carrier, to gain access to the populated `DistributedTracingExtension`:
 
 ```go
 type MyEvent struct { 
@@ -166,12 +164,15 @@ type MyEvent struct {
 func injectAndReadTraceParentAndState(ctx context.Context, e cloudevents.Event) {
 
     me := MyEvent{}
-    tc := otelObs.NewCloudEventTraceContext()
+
+	// the propagator from OpenTelemetry
+    prop := propagation.TraceContext{}
+
 	carrier := otelObs.NewCloudEventCarrier()
 
     // Injects (writes) the tracecontext into the NewCloudEventCarrier
     // Doing so, will set the DistributedTracingExtension fields
-	tc.Inject(ctx, carrier)
+	prop.Inject(ctx, carrier)
 
     // Here then we have the "raw" access to the tracecontext data
     // https://www.w3.org/TR/trace-context/
@@ -183,5 +184,3 @@ func injectAndReadTraceParentAndState(ctx context.Context, e cloudevents.Event) 
 	me.TraceState = carrier.Extension.TraceState
 }
 ```
-
-> The `CloudEventTraceContext` is necessary because the [TraceContext](https://github.com/open-telemetry/opentelemetry-go/blob/v1.0.0-RC3/propagation/trace_context.go) from OpenTelemetry **always** takes the `tracecontext` from the carrier. If the code is already instrumented, extracting the `tracecontext` from the event to continue the trace *could* be wrong, as the `context` might have a more recent span. Due to this, calling `Extract` on the `CloudEventTraceContext` will first check if the passed `context` has a `tracecontext`. If it does, then the same context is returned and nothing is extracted from the event.

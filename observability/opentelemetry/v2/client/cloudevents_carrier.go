@@ -10,6 +10,7 @@ import (
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/cloudevents/sdk-go/v2/extensions"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 // CloudEventCarrier wraps the distributed trace extension to satisfy the TextMapCarrier interface.
@@ -65,7 +66,7 @@ func (cec CloudEventCarrier) Keys() []string {
 // If a DistributedTracingExtension is present in the provided event, its current value is replaced with the
 // tracecontext obtained from the context.
 func InjectDistributedTracingExtension(ctx context.Context, event cloudevents.Event) {
-	tc := NewCloudEventTraceContext()
+	tc := propagation.TraceContext{}
 	carrier := NewCloudEventCarrier()
 	tc.Inject(ctx, carrier)
 	carrier.Extension.AddTracingAttributes(&event)
@@ -73,12 +74,10 @@ func InjectDistributedTracingExtension(ctx context.Context, event cloudevents.Ev
 
 // ExtractDistributedTracingExtension extracts the tracecontext from the cloud event into the context.
 //
-// If the context has a recording span, then the same context is returned. If not, then the extraction
-// from the cloud event happens. The auto-instrumentation libraries take care of creating the context
-// with the proper/most recent tracecontext, often started by itself. In this case it's more correct
-// to take the tracecontext from the context instead of taking it from the event.
+// Calling this method will always replace the tracecontext in the context with the one extracted from the event.
+// In case this is undesired, check if the context has a recording span with: `trace.SpanFromContext(ctx)`
 func ExtractDistributedTracingExtension(ctx context.Context, event cloudevents.Event) context.Context {
-	tc := NewCloudEventTraceContext()
+	tc := propagation.TraceContext{}
 	carrier := NewCloudEventCarrierWithEvent(event)
 
 	return tc.Extract(ctx, carrier)
