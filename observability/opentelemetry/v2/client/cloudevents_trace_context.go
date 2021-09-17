@@ -13,7 +13,7 @@ import (
 )
 
 // CloudEventTraceContext is a wrapper around the OpenTelemetry TraceContext
-// https://github.com/open-telemetry/opentelemetry-go/blob/main/propagation/trace_context.go
+// https://github.com/open-telemetry/opentelemetry-go/blob/v1.0.0-RC3/propagation/trace_context.go
 type CloudEventTraceContext struct {
 	traceContext propagation.TraceContext
 }

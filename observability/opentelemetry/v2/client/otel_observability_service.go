@@ -184,7 +184,7 @@ func recordSpanError(span trace.Span, errOrResult error) {
 // the default name will be "cloudevents.client.<eventtype> prefix" e.g. cloudevents.client.get.customers send.
 //
 // The prefix is always added at the end of the span name. This follows the semantic conventions for
-// messasing systems as defined in https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#operation-names
+// messasing systems as defined in https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/trace/semantic_conventions/messaging.md#operation-names
 func (os OTelObservabilityService) getSpanName(e *cloudevents.Event, suffix string) string {
 	name := os.spanNameFormatter(*e)
 
