@@ -7,6 +7,7 @@ package client
 
 import (
 	"context"
+	"runtime"
 	"strings"
 
 	"go.opentelemetry.io/otel"
@@ -32,35 +33,34 @@ type OTelObservabilityService struct {
 func NewOTelObservabilityService(opts ...OTelObservabilityServiceOption) *OTelObservabilityService {
 	tracerProvider := otel.GetTracerProvider()
 
-	os := &OTelObservabilityService{
+	o := &OTelObservabilityService{
 		tracer: tracerProvider.Tracer(
 			instrumentationName,
-			trace.WithInstrumentationVersion("1.0.0"), // TODO: Can we have the package version here?
 		),
 		spanNameFormatter: defaultSpanNameFormatter,
 	}
 
 	// apply passed options
 	for _, opt := range opts {
-		opt(os)
+		opt(o)
 	}
 
-	return os
+	return o
 }
 
 // InboundContextDecorators returns a decorator function that allows enriching the context with the incoming parent trace.
 // This method gets invoked automatically by passing the option 'WithObservabilityService' when creating the cloudevents HTTP client.
-func (os OTelObservabilityService) InboundContextDecorators() []func(context.Context, binding.Message) context.Context {
+func (o OTelObservabilityService) InboundContextDecorators() []func(context.Context, binding.Message) context.Context {
 	return []func(context.Context, binding.Message) context.Context{tracePropagatorContextDecorator}
 }
 
 // RecordReceivedMalformedEvent records the error from a malformed event in the span.
-func (os OTelObservabilityService) RecordReceivedMalformedEvent(ctx context.Context, err error) {
+func (o OTelObservabilityService) RecordReceivedMalformedEvent(ctx context.Context, err error) {
 	spanName := observability.ClientSpanName + ".malformed receive"
-	_, span := os.tracer.Start(
+	_, span := o.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindConsumer),
-		trace.WithAttributes(attribute.String(string(semconv.CodeFunctionKey), "RecordReceivedMalformedEvent")))
+		trace.WithAttributes(attribute.String(string(semconv.CodeFunctionKey), getFuncName())))
 
 	recordSpanError(span, err)
 	span.End()
@@ -68,15 +68,15 @@ func (os OTelObservabilityService) RecordReceivedMalformedEvent(ctx context.Cont
 
 // RecordCallingInvoker starts a new span before calling the invoker upon a received event.
 // In case the operation fails, the error is recorded and the span is marked as failed.
-func (os OTelObservabilityService) RecordCallingInvoker(ctx context.Context, event *cloudevents.Event) (context.Context, func(errOrResult error)) {
-	spanName := os.getSpanName(event, "receive")
-	ctx, span := os.tracer.Start(
+func (o OTelObservabilityService) RecordCallingInvoker(ctx context.Context, event *cloudevents.Event) (context.Context, func(errOrResult error)) {
+	spanName := o.getSpanName(event, "receive")
+	ctx, span := o.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindConsumer),
-		trace.WithAttributes(GetDefaultSpanAttributes(event, "RecordCallingInvoker")...))
+		trace.WithAttributes(GetDefaultSpanAttributes(event, getFuncName())...))
 
-	if span.IsRecording() && os.spanAttributesGetter != nil {
-		span.SetAttributes(os.spanAttributesGetter(*event)...)
+	if span.IsRecording() && o.spanAttributesGetter != nil {
+		span.SetAttributes(o.spanAttributesGetter(*event)...)
 	}
 
 	return ctx, func(errOrResult error) {
@@ -87,16 +87,16 @@ func (os OTelObservabilityService) RecordCallingInvoker(ctx context.Context, eve
 
 // RecordSendingEvent starts a new span before sending the event.
 // In case the operation fails, the error is recorded and the span is marked as failed.
-func (os OTelObservabilityService) RecordSendingEvent(ctx context.Context, event cloudevents.Event) (context.Context, func(errOrResult error)) {
-	spanName := os.getSpanName(&event, "send")
+func (o OTelObservabilityService) RecordSendingEvent(ctx context.Context, event cloudevents.Event) (context.Context, func(errOrResult error)) {
+	spanName := o.getSpanName(&event, "send")
 
-	ctx, span := os.tracer.Start(
+	ctx, span := o.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindProducer),
-		trace.WithAttributes(GetDefaultSpanAttributes(&event, "RecordSendingEvent")...))
+		trace.WithAttributes(GetDefaultSpanAttributes(&event, getFuncName())...))
 
-	if span.IsRecording() && os.spanAttributesGetter != nil {
-		span.SetAttributes(os.spanAttributesGetter(event)...)
+	if span.IsRecording() && o.spanAttributesGetter != nil {
+		span.SetAttributes(o.spanAttributesGetter(event)...)
 	}
 
 	return ctx, func(errOrResult error) {
@@ -107,16 +107,16 @@ func (os OTelObservabilityService) RecordSendingEvent(ctx context.Context, event
 
 // RecordRequestEvent starts a new span before transmitting the given request.
 // In case the operation fails, the error is recorded and the span is marked as failed.
-func (os OTelObservabilityService) RecordRequestEvent(ctx context.Context, event cloudevents.Event) (context.Context, func(errOrResult error, event *cloudevents.Event)) {
-	spanName := os.getSpanName(&event, "send")
+func (o OTelObservabilityService) RecordRequestEvent(ctx context.Context, event cloudevents.Event) (context.Context, func(errOrResult error, event *cloudevents.Event)) {
+	spanName := o.getSpanName(&event, "send")
 
-	ctx, span := os.tracer.Start(
+	ctx, span := o.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindProducer),
-		trace.WithAttributes(GetDefaultSpanAttributes(&event, "RecordRequestEvent")...))
+		trace.WithAttributes(GetDefaultSpanAttributes(&event, getFuncName())...))
 
-	if span.IsRecording() && os.spanAttributesGetter != nil {
-		span.SetAttributes(os.spanAttributesGetter(event)...)
+	if span.IsRecording() && o.spanAttributesGetter != nil {
+		span.SetAttributes(o.spanAttributesGetter(event)...)
 	}
 
 	return ctx, func(errOrResult error, event *cloudevents.Event) {
@@ -185,8 +185,8 @@ func recordSpanError(span trace.Span, errOrResult error) {
 //
 // The prefix is always added at the end of the span name. This follows the semantic conventions for
 // messasing systems as defined in https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/trace/semantic_conventions/messaging.md#operation-names
-func (os OTelObservabilityService) getSpanName(e *cloudevents.Event, suffix string) string {
-	name := os.spanNameFormatter(*e)
+func (o OTelObservabilityService) getSpanName(e *cloudevents.Event, suffix string) string {
+	name := o.spanNameFormatter(*e)
 
 	// make sure the span name ends with the suffix from the semantic conventions (receive, send, process)
 	if !strings.HasSuffix(name, suffix) {
@@ -194,4 +194,20 @@ func (os OTelObservabilityService) getSpanName(e *cloudevents.Event, suffix stri
 	}
 
 	return name
+}
+
+func getFuncName() string {
+	pc := make([]uintptr, 1)
+	n := runtime.Callers(2, pc)
+	frames := runtime.CallersFrames(pc[:n])
+	frame, _ := frames.Next()
+
+	// frame.Function should be github.com/cloudevents/sdk-go/observability/opentelemetry/v2/client.OTelObservabilityService.Func
+	parts := strings.Split(frame.Function, ".")
+
+	// we are interested in the function name
+	if len(parts) != 4 {
+		return ""
+	}
+	return parts[3]
 }

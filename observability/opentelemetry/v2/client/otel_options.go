@@ -13,12 +13,12 @@ import (
 )
 
 const (
-	// TODO: Should this be the name of this module or the whole package?
 	instrumentationName = "github.com/cloudevents/sdk-go/observability/opentelemetry/v2"
 )
 
 type OTelObservabilityServiceOption func(*OTelObservabilityService)
 
+// WithSpanAttributesGetter appends the returned attributes from the function to the span.
 func WithSpanAttributesGetter(attrGetter func(cloudevents.Event) []attribute.KeyValue) OTelObservabilityServiceOption {
 	return func(os *OTelObservabilityService) {
 		if attrGetter != nil {
@@ -27,6 +27,7 @@ func WithSpanAttributesGetter(attrGetter func(cloudevents.Event) []attribute.Key
 	}
 }
 
+// WithSpanNameFormatter replaces the default span name with the string returned from the function
 func WithSpanNameFormatter(nameFormatter func(cloudevents.Event) string) OTelObservabilityServiceOption {
 	return func(os *OTelObservabilityService) {
 		if nameFormatter != nil {
