@@ -13,7 +13,7 @@ import (
 	cehttp "github.com/cloudevents/sdk-go/v2/protocol/http"
 )
 
-// NewObservedHTTP creates an HTTP protocol with trace propagating middleware.
+// NewObservedHTTP creates an HTTP protocol with OTel trace propagating middleware.
 func NewObservedHTTP(opts ...cehttp.Option) (*cehttp.Protocol, error) {
 	// appends the OpenTelemetry Http transport + Middleware wrapper
 	// to properly trace outgoing and incoming requests from the client using this protocol
