@@ -12,7 +12,7 @@ import (
 	"github.com/cloudevents/sdk-go/v2/extensions"
 )
 
-// CloudEventCarrier adapts the distributed trace extension to satisfy the TextMapCarrier interface.
+// CloudEventCarrier wraps the distributed trace extension to satisfy the TextMapCarrier interface.
 // https://github.com/open-telemetry/opentelemetry-go/blob/main/propagation/propagation.go#L23
 type CloudEventCarrier struct {
 	Extension *extensions.DistributedTracingExtension
