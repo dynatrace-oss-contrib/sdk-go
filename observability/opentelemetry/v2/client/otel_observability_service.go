@@ -28,7 +28,7 @@ type OTelObservabilityService struct {
 	spanNameFormatter    func(cloudevents.Event) string
 }
 
-// NewOTelObservabilityService returns a OpenTelemetry enabled observability service
+// NewOTelObservabilityService returns an OpenTelemetry-enabled observability service
 func NewOTelObservabilityService(opts ...OTelObservabilityServiceOption) *OTelObservabilityService {
 	tracerProvider := otel.GetTracerProvider()
 
