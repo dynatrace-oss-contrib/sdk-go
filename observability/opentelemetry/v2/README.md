@@ -183,3 +183,5 @@ func injectAndReadTraceParentAndState(ctx context.Context, e cloudevents.Event) 
 	me.TraceState = carrier.Extension.TraceState
 }
 ```
+
+> The `CloudEventTraceContext` is necessary because the [TraceContext](https://github.com/open-telemetry/opentelemetry-go/blob/v1.0.0-RC3/propagation/trace_context.go) from OpenTelemetry **always** takes the `tracecontext` from the carrier. If the code is already instrumented, extracting the `tracecontext` from the event to continue the trace *could* be wrong, as the `context` might have a more recent span. Due to this, calling `Extract` on the `CloudEventTraceContext` will first check if the passed `context` has a `tracecontext`. If it does, then the same context is returned and nothing is extracted from the event.
