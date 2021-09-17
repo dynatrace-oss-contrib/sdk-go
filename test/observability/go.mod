@@ -11,4 +11,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.0.0-RC3
 )
 
-replace github.com/cloudevents/sdk-go/observability/opentelemetry/v2 v2.5.0 => ../../observability/opentelemetry/v2
+replace github.com/cloudevents/sdk-go/observability/opentelemetry/v2 => ../../observability/opentelemetry/v2
+
+replace github.com/cloudevents/sdk-go/v2 => ../../v2
