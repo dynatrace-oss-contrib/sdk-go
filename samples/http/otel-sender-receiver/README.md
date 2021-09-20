@@ -43,7 +43,7 @@ $ go run server/server.go
 $ go run client/client.go
 ```
 
-4. Open the Jaeger UI [http://localhost:16686](http://localhost:16686)
+4. Open the Jaeger UI (by default Jaeger exposes the UI at [http://localhost:16686](http://localhost:16686))
 
 5. On the `Service` dropdown select `cloudevents-client`. Next, click on `Find Traces`. 
 
