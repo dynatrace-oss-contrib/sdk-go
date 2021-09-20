@@ -93,7 +93,7 @@ os := otelObs.NewOTelObservabilityService(
 c, err := cloudevents.NewClient(p, client.WithObservabilityService(os))
 ```
 
->NOTE: The `nameFormatter` and `attributesGetter` functions will be called on each span creation. **Avoid** doing any heavy processing in them.
+>Note: The `nameFormatter` and `attributesGetter` functions will be called on each span creation. **Avoid** doing any heavy processing in them.
 
 
 ## Extra types
