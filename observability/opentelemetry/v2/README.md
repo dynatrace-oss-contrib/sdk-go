@@ -44,7 +44,7 @@ p, err := cloudevents.NewHTTP(
 
 The `otelhttp.NewTransport` will ensure that spans are generated for each outgoing request, and that the `traceparent` header is properly propagated. The `otelhttp.NewHandler` will take care of incoming requests, reading the `traceparent` header and continuing the trace with a new span.
 
-This already gives some observability "out-of-the-box", but the spans generated only contain common HTTP headers as defined in the [HTTP semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/trace/semantic_conventions/http.md). Also if you are using another protocol, then spans will not be automatically generated, unless there is an auto-instrumentation library for that.
+This already gives some observability "out-of-the-box", but the spans generated only contain common HTTP headers as defined in the [HTTP semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/trace/semantic_conventions/http.md). Another point is that if using another protocol, propagation will not work and spans will not be automatically generated, unless there is an auto-instrumentation library for it.
 
 Because of this, CloudEvents offers the `ObservabilityService` interface which is used to generate spans, independently of the chosen protocol. See next how to configure the CloudEvents client to use it.
 
@@ -107,7 +107,7 @@ They allow to inject(write) and extract(read) `tracecontext` from the event. Thi
 
 When working with distributed systems, it can be difficult to achieve proper context propagation. For example, a long-running process listening to a topic does not have a "context" concept like a HTTP server receiving requests does.
 
->Note: The OpenTelemetry community is always creating auto-instrumentation for popular libraries and frameworks. The [OpenTelemetry registry](https://opentelemetry.io/registry/?s=kafka&component=&language=go) lists the integrations available. As support increases, new auto-instrumentation libraries can be integrated into the CloudEvents SDK.
+>Note: The OpenTelemetry community is always creating new auto-instrumentation integrations for popular libraries and frameworks. The [OpenTelemetry registry](https://opentelemetry.io/registry/?s=kafka&component=&language=go) lists the integrations that are available. As support increases, new auto-instrumentation libraries can be integrated into the CloudEvents SDK.
 
 For this case, it might be useful to `inject` the `tracecontext` inside the event before sending it to a queue. Later, the process can `extract` it and continue the trace normally. For that we can use the `InjectDistributedTracingExtension` and `ExtractDistributedTracingExtension` helper functions.
 
