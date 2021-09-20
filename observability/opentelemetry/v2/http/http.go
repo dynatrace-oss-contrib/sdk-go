@@ -21,9 +21,7 @@ func NewObservedHTTP(opts ...cehttp.Option) (*cehttp.Protocol, error) {
 		[]cehttp.Option{
 			cehttp.WithRoundTripper(otelhttp.NewTransport(http.DefaultTransport)),
 			cehttp.WithMiddleware(func(next http.Handler) http.Handler {
-				return otelhttp.NewHandler(next, "", otelhttp.WithSpanNameFormatter(func(_ string, r *http.Request) string {
-					return "cloudevents.http.receiver." + r.URL.Path
-				}))
+				return otelhttp.NewHandler(next, "cloudevents.http.receiver")
 			}),
 		},
 		opts...,

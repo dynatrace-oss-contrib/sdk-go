@@ -9,6 +9,7 @@ import (
 	"context"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	cecontext "github.com/cloudevents/sdk-go/v2/context"
 	"github.com/cloudevents/sdk-go/v2/extensions"
 	"go.opentelemetry.io/otel/propagation"
 )
@@ -26,9 +27,10 @@ func NewCloudEventCarrier() CloudEventCarrier {
 
 // NewCloudEventCarrierWithEvent creates a new CloudEventCarrier with a distributed tracing extension
 // populated with the trace data from the event.
-func NewCloudEventCarrierWithEvent(event cloudevents.Event) CloudEventCarrier {
+func NewCloudEventCarrierWithEvent(ctx context.Context, event cloudevents.Event) CloudEventCarrier {
 	var te, ok = extensions.GetDistributedTracingExtension(event)
 	if !ok {
+		cecontext.LoggerFrom(ctx).Warn("Could not get the distributed tracing extension from the event.")
 		return CloudEventCarrier{Extension: &extensions.DistributedTracingExtension{}}
 	}
 	return CloudEventCarrier{Extension: &te}
@@ -78,7 +80,7 @@ func InjectDistributedTracingExtension(ctx context.Context, event cloudevents.Ev
 // In case this is undesired, check first if the context has a recording span with: `trace.SpanFromContext(ctx)`
 func ExtractDistributedTracingExtension(ctx context.Context, event cloudevents.Event) context.Context {
 	tc := propagation.TraceContext{}
-	carrier := NewCloudEventCarrierWithEvent(event)
+	carrier := NewCloudEventCarrierWithEvent(ctx, event)
 
 	return tc.Extract(ctx, carrier)
 }
