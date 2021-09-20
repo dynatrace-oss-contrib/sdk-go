@@ -2,7 +2,7 @@
 
 This package contains the components necessary to instrument CloudEvents clients with OpenTelemetry. The main component is the `OTelObservabilityService` which implements the `ObservabilityService` interface from CloudEvents.
 
-## Getting a fully instrumented CloudEvents HTTP client
+## Instrumented CloudEvents HTTP client
 
 If you want to get a fully instrumented HTTP client, use the helper method in the ` github.com/cloudevents/sdk-go/observability/opentelemetry/v2` module:
 
