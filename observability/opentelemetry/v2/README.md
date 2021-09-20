@@ -26,7 +26,7 @@ This will produce spans for all outgoing and incoming requests. By default, the 
 
 ### HTTP auto-instrumentation
 
-In order to generate spans when sending and receiving events, it's necessary to configure the HTTP client from cloudevents with OpenTelemetry instrumentation. The client has two "possibilities" for instrumentation:
+In order to generate spans when sending and receiving events, it's necessary to configure the HTTP client from cloudevents with OpenTelemetry instrumentation. The client has two potentially interesting points for instrumentation:
 
 - Outgoing requests
 - Incoming requests (via StartReceiver)
