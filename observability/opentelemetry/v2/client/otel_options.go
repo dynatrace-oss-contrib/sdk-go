@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	// The value for the `otel.library.name` span attribute
 	instrumentationName = "github.com/cloudevents/sdk-go/observability/opentelemetry/v2"
 )
 

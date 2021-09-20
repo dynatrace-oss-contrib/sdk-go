@@ -36,6 +36,8 @@ func NewOTelObservabilityService(opts ...OTelObservabilityServiceOption) *OTelOb
 	o := &OTelObservabilityService{
 		tracer: tracerProvider.Tracer(
 			instrumentationName,
+			// TODO: Can we have the package version here?
+			// trace.WithInstrumentationVersion("1.0.0"),
 		),
 		spanNameFormatter: defaultSpanNameFormatter,
 	}
@@ -69,7 +71,7 @@ func (o OTelObservabilityService) RecordReceivedMalformedEvent(ctx context.Conte
 // RecordCallingInvoker starts a new span before calling the invoker upon a received event.
 // In case the operation fails, the error is recorded and the span is marked as failed.
 func (o OTelObservabilityService) RecordCallingInvoker(ctx context.Context, event *cloudevents.Event) (context.Context, func(errOrResult error)) {
-	spanName := o.getSpanName(event, "receive")
+	spanName := o.getSpanName(event, "process")
 	ctx, span := o.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindConsumer),
@@ -125,6 +127,8 @@ func (o OTelObservabilityService) RecordRequestEvent(ctx context.Context, event 
 	}
 }
 
+// GetDefaultSpanAttributes returns the attributes that are always added to the spans
+// created by the OTelObservabilityService.
 func GetDefaultSpanAttributes(e *cloudevents.Event, method string) []attribute.KeyValue {
 	attr := []attribute.KeyValue{
 		attribute.String(string(semconv.CodeFunctionKey), method),

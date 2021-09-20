@@ -75,7 +75,7 @@ func InjectDistributedTracingExtension(ctx context.Context, event cloudevents.Ev
 // ExtractDistributedTracingExtension extracts the tracecontext from the cloud event into the context.
 //
 // Calling this method will always replace the tracecontext in the context with the one extracted from the event.
-// In case this is undesired, check if the context has a recording span with: `trace.SpanFromContext(ctx)`
+// In case this is undesired, check first if the context has a recording span with: `trace.SpanFromContext(ctx)`
 func ExtractDistributedTracingExtension(ctx context.Context, event cloudevents.Event) context.Context {
 	tc := propagation.TraceContext{}
 	carrier := NewCloudEventCarrierWithEvent(event)

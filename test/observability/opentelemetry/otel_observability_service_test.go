@@ -247,7 +247,7 @@ func TestRecordCallingInvoker(t *testing.T) {
 
 		{
 			name:             "invoker with default options",
-			expectedSpanName: "cloudevents.client.example.type receive",
+			expectedSpanName: "cloudevents.client.example.type process",
 			expectedStatus:   codes.Unset,
 			expectedAttrs:    otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordCallingInvoker"),
 			expectedSpanKind: trace.SpanKindConsumer,
@@ -255,7 +255,7 @@ func TestRecordCallingInvoker(t *testing.T) {
 		},
 		{
 			name:             "invoker with custom span name",
-			expectedSpanName: "test.example.type receive",
+			expectedSpanName: "test.example.type process",
 			expectedStatus:   codes.Unset,
 			expectedAttrs:    otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordCallingInvoker"),
 			expectedSpanKind: trace.SpanKindConsumer,
@@ -265,7 +265,7 @@ func TestRecordCallingInvoker(t *testing.T) {
 		},
 		{
 			name:             "invoker with custom attributes",
-			expectedSpanName: "test.example.type receive",
+			expectedSpanName: "test.example.type process",
 			expectedStatus:   codes.Unset,
 			expectedAttrs:    append(otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordCallingInvoker"), attribute.String("my-attr", "some-value")),
 			expectedSpanKind: trace.SpanKindConsumer,
@@ -280,7 +280,7 @@ func TestRecordCallingInvoker(t *testing.T) {
 		},
 		{
 			name:             "invoker with error response",
-			expectedSpanName: "cloudevents.client.example.type receive",
+			expectedSpanName: "cloudevents.client.example.type process",
 			expectedStatus:   codes.Unset,
 			expectedAttrs:    otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordCallingInvoker"),
 			expectedSpanKind: trace.SpanKindConsumer,
@@ -288,7 +288,7 @@ func TestRecordCallingInvoker(t *testing.T) {
 		},
 		{
 			name:             "invoker with http error response",
-			expectedSpanName: "cloudevents.client.example.type receive",
+			expectedSpanName: "cloudevents.client.example.type process",
 			expectedStatus:   codes.Error,
 			expectedAttrs:    otelObs.GetDefaultSpanAttributes(&expectedEvent, "RecordCallingInvoker"),
 			expectedSpanKind: trace.SpanKindConsumer,
