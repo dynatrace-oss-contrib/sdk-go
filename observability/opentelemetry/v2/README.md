@@ -1,8 +1,8 @@
-# OpenTelemetry instrumentation for cloudevents
+# OpenTelemetry instrumentation for CloudEvents
 
-This package contains the components necessary to instrument cloudevents clients with OpenTelemetry. The main component is the `OTelObservabilityService` which implements the `ObservabilityService` interface from cloudevents.
+This package contains the components necessary to instrument CloudEvents clients with OpenTelemetry. The main component is the `OTelObservabilityService` which implements the `ObservabilityService` interface from CloudEvents.
 
-## Getting a fully instrumented cloudevents HTTP client
+## Getting a fully instrumented CloudEvents HTTP client
 
 If you want to get a fully instrumented HTTP client, use the helper method in the ` github.com/cloudevents/sdk-go/observability/opentelemetry/v2` module:
 
@@ -46,11 +46,11 @@ The `otelhttp.NewTransport` will ensure that spans are generated for each outgoi
 
 This already gives some observability "out-of-the-box", but the spans generated only contain common HTTP headers as defined in the [HTTP semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/trace/semantic_conventions/http.md). Also if you are using another protocol, then spans will not be automatically generated, unless there is an auto-instrumentation library for that.
 
-Because of this, cloudevents offers the `ObservabilityService` interface which is used to generate spans, independently of the chosen protocol. See next how to configure the cloudevents client to use it.
+Because of this, CloudEvents offers the `ObservabilityService` interface which is used to generate spans, independently of the chosen protocol. See next how to configure the CloudEvents client to use it.
 
 ### Using the OTelObservabilityService
 
-The most basic way to configure the cloudevents client to use the `OTelObservabilityService` is:
+The most basic way to configure the CloudEvents client to use the `OTelObservabilityService` is:
 
 ```go
 c, err := cloudevents.NewClient(p, client.WithObservabilityService(otelObs.NewOTelObservabilityService()))

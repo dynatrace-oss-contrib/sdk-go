@@ -1,10 +1,10 @@
-# Cloudevents with OpenTelemetry instrumentation
+# CloudEvents with OpenTelemetry instrumentation
 
-This sample demonstrates both client and server apps using cloudevents instrumented with OpenTelemetry. 
+This sample demonstrates both client and server apps using CloudEvents instrumented with OpenTelemetry. 
 
 > If this is your first time hearing about OpenTelemetry, take a look at the official documentation: [What is OpenTelemetry](https://opentelemetry.io/docs/concepts/what-is-opentelemetry/).
 
-The client app sends an event using cloudevents to a server. The server listens for events also using cloudevents. For each event it receives, it makes then an external HTTP request to `cloudevents.io`, just to illustrate the context propagation working. 
+The client app sends an event using CloudEvents to a server. The server listens for events also using CloudEvents. For each event it receives, it makes then an external HTTP request to `cloudevents.io`, just to illustrate the context propagation working. 
 
 Here's a diagram to examplify the communication between the components:
 
