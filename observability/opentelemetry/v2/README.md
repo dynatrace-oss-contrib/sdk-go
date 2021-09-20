@@ -100,7 +100,7 @@ c, err := cloudevents.NewClient(p, client.WithObservabilityService(os))
 
 This package also contains extra types and helper functions that are useful in case you need to access/set the `tracecontext` in a more "low-level" way.
 
-They allow to inject(write) and extract(read) `tracecontext` from the event. This is particularly useful when dealing with code that has no notion of a "request" nor a context. For example, long-running background processes pooling from a queue. 
+They allow to inject(write) and extract(read) `tracecontext` from the event. This is particularly useful when dealing with code that has no notion of a "request" nor a context. For example, long-running background processes polling from a queue. 
 
 >Note: To learn more about the propagation, take a look at the [Propagators API SPEC](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/context/api-propagators.md).
 
