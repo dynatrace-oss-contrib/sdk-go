@@ -11,7 +11,7 @@ Here's a diagram to examplify the communication between the components:
 ![client > server > external service](./request-flow.png "Sample app request flow")
 
 
-Both apps are configured to send the spans to a locally running [Jaeger](https://www.jaegertracing.io/). See instructions below on how to run everything.
+Both apps are configured to send the spans to a locally running [Jaeger](https://www.jaegertracing.io/) instance. See instructions below on how to run everything.
 
 ## Requirements to run
 
