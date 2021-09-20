@@ -48,7 +48,6 @@ This already gives some observability "out-of-the-box", but the spans generated 
 
 Because of this, cloudevents offers the `ObservabilityService` interface which is used to generate spans, independently of the chosen protocol. See next how to configure the cloudevents client to use it.
 
-
 ### Using the OTelObservabilityService
 
 The most basic way to configure the cloudevents client to use the `OTelObservabilityService` is:
