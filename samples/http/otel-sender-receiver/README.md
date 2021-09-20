@@ -49,7 +49,6 @@ $ go run client/client.go
 
 ![Selecting the service on Jaeger](./jaeger-find-traces.png "Finding our traces in Jaeger")
 
-
 6. On the right side you should see a trace with name `cloudevents-client: cloudevents.client.example.type send`. Click there to see the full trace:
 
 ![The complete trace on Jaeger](./jaeger-example.png "The full trace")
