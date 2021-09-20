@@ -103,7 +103,6 @@ They allow to inject(write) and extract(read) `tracecontext` from the event. Thi
 
 >Note: To learn more about the propagation, take a look at the [Propagators API SPEC](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/context/api-propagators.md).
 
-
 ## Manually extracting/injecting tracecontext from the event
 
 When working with distributed systems, it can be difficult to achieve proper context propagation. For example, a long-running process listening to a topic does not have a "context" concept like a HTTP server receiving requests does.
