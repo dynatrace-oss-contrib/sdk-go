@@ -95,7 +95,6 @@ c, err := cloudevents.NewClient(p, client.WithObservabilityService(os))
 
 >Note: The `nameFormatter` and `attributesGetter` functions will be called on each span creation. **Avoid** doing any heavy processing in them.
 
-
 ## Extra types
 
 This package also contains extra types and helper functions that are useful in case you need to access/set the `tracecontext` in a more "low-level" way.
