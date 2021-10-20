@@ -45,13 +45,6 @@ func main() {
 
 func handleReceivedEvent(ctx context.Context, event cloudevents.Event) protocol.Result {
 
-	// Showcase injecting the incoming tracecontext into the event as a DistributedTraceExtension
-	otelObs.InjectDistributedTracingExtension(ctx, event)
-
-	// Showcase extracting the tracecontext from the event into a context in order to continue the trace.
-	// This is useful for cases where events are read from a queue and no context is present.
-	ctx = otelObs.ExtractDistributedTracingExtension(ctx, event)
-
 	// manually start a span for this http request
 	ctx, childSpan := tracer.Start(ctx, "externalHttpCall", trace.WithAttributes(attribute.String("id", "123")))
 	defer childSpan.End()

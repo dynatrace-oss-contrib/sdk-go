@@ -6,15 +6,17 @@
 package client
 
 import (
+	"fmt"
+
 	"go.opentelemetry.io/otel/attribute"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"github.com/cloudevents/sdk-go/v2/observability"
 )
 
 const (
 	// The value for the `otel.library.name` span attribute
 	instrumentationName = "github.com/cloudevents/sdk-go/observability/opentelemetry/v2"
+	operationNameToken  = "{operation}"
 )
 
 type OTelObservabilityServiceOption func(*OTelObservabilityService)
@@ -38,5 +40,6 @@ func WithSpanNameFormatter(nameFormatter func(cloudevents.Event) string) OTelObs
 }
 
 var defaultSpanNameFormatter func(cloudevents.Event) string = func(e cloudevents.Event) string {
-	return observability.ClientSpanName + "." + e.Context.GetType()
+	// CloudEvents Process my.event.type
+	return fmt.Sprintf("CloudEvents %s %s", operationNameToken, e.Context.GetType())
 }
