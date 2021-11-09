@@ -73,13 +73,14 @@ func (o OTelObservabilityService) RecordReceivedMalformedEvent(ctx context.Conte
 func (o OTelObservabilityService) RecordCallingInvoker(ctx context.Context, event *cloudevents.Event) (context.Context, func(errOrResult error)) {
 	spanName := o.getSpanName(event, "Process")
 
-	// use the remote context from the event to start the processing span
-	ctx = ExtractDistributedTracingExtension(ctx, *event)
+	// Adds the remote context from the event as a link to the processing span
+	linkCtx := ExtractDistributedTracingExtension(ctx, *event)
 
 	ctx, span := o.tracer.Start(
 		ctx, spanName,
 		trace.WithSpanKind(trace.SpanKindConsumer),
-		trace.WithAttributes(GetDefaultSpanAttributes(event, getFuncName())...))
+		trace.WithAttributes(GetDefaultSpanAttributes(event, getFuncName())...),
+		trace.WithLinks(trace.LinkFromContext(linkCtx)))
 
 	if span.IsRecording() && o.spanAttributesGetter != nil {
 		span.SetAttributes(o.spanAttributesGetter(*event)...)

@@ -7,10 +7,12 @@ require (
 	github.com/cloudevents/sdk-go/binding/format/protobuf/v2 v2.5.0
 	github.com/cloudevents/sdk-go/observability/opencensus/v2 v2.5.0
 	github.com/cloudevents/sdk-go/observability/opentelemetry/v2 v2.5.0
+	github.com/cloudevents/sdk-go/protocol/nats/v2 v2.5.0
 	github.com/cloudevents/sdk-go/v2 v2.5.0
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.3
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/nats-io/nats.go v1.13.0 // indirect
 	go.opencensus.io v0.22.3
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.23.0
 	go.opentelemetry.io/otel v1.0.0
